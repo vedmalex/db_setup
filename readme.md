@@ -1,38 +1,52 @@
-# run compose
+# how to use
 
-folder structure
-```bash
-/ --> docker-compose.yaml
-/dump --> folder with dumps
-/config --> folder with config files
-```
+## 1. git clone repository
 
-mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=rs0
+## 2. create folders for dump
 
-## настройи хоста базы данных
+```mkdir dump```
 
-необходимо сконфигурировать /etc/hosts для доступа к базе данных из контейнера
-``` bash
-sudo nano /etc/hosts
-```
-добавить в конец файла текст
+put here all databases you want to backup
+
+special files
+ - .skip_dump - skip db from being dumped to backup folder
+ - .skip_restore - skip db from being restored from backup folder
+ - .dumped - db successfully dumped to backup folder
+ - .restored - db successfully restored from backup folder
+
+## 3. configure env file
+
+```cp env.sample .env```
+
+## 4. configure /etc/hosts file
+
+add this code to the end of the file:
 
 ```bash
 127.0.0.1 mongo1
 127.0.0.1 mongo2
 ```
 
-## восстановление базы данных из резервной копии
+## 5. for adding user to the db
 
-в папку с docker-compose.yaml создать папку dump
-в нее переместить все необходимые базы данных для восстановления в контейнер
+change the password in the .env file
 
-запустить контейнер с командой
+```bash
+MONGO_ROOT_USERNAME=< super fancy username >
+MONGO_ROOT_PASSWORD=< super fancy root password >
 ```
-docker-compose up -d
-```
-выполнить иморт данных
+additional users can be added to the `scripts/users.json` file
+see the example in the file `scripts/users.sample.json`
+
+
+5. run start deployment
+
+```./init.sh```
+
+6. for connection db
 
 ```
-mongorestore --uri "mongodb://localhost:27017,localhost:27017,localhost:27017/dbname?replicaSet=rs0"
+mongodb://<super fancy username>:<super fancy root password>@mongo1:27017/<dtabase name>?authSource=admin&replicaSet=rs0
 ```
+
+pull requests is welcome

@@ -5,16 +5,16 @@
   },
   "additional_users": [
     {
-      "username": "sharan",
-      "password": "sharan",
+      "username": "product1",
+      "password": "product1",
       "roles": [
         {
           "role": "readWrite",
-          "db": "full"
+          "db": "product1_db"
         },
         {
           "role": "readWrite",
-          "db": "sharanSession"
+          "db": "product1_session_db"
         }
       ]
     },
@@ -24,7 +24,11 @@
       "roles": [
         {
           "role": "read",
-          "db": "full"
+          "db": "product1_db"
+        },
+        {
+          "role": "readWrite",
+          "db": "product1_session_db"
         }
       ]
     }
