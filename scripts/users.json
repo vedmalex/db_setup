@@ -1,0 +1,32 @@
+{
+  "admin": {
+    "username": "admin",
+    "password": "admin"
+  },
+  "additional_users": [
+    {
+      "username": "sharan",
+      "password": "sharan",
+      "roles": [
+        {
+          "role": "readWrite",
+          "db": "full"
+        },
+        {
+          "role": "readWrite",
+          "db": "sharanSession"
+        }
+      ]
+    },
+    {
+      "username": "reporter",
+      "password": "reporter",
+      "roles": [
+        {
+          "role": "read",
+          "db": "full"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+services:
+  mongo-make-dump:
+    # profiles: ["dump"]  # Добавляем эту строку
+    image: mongo:${MONGO_VERSION}
+    container_name: mongo-make-dump
+    volumes:
+      - ./scripts/dump-data.sh:/dump-data.sh
+      - ${MONGO_DUMP_DIR}:/dump
+    environment:
+      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      PARALLEL_COLLECTIONS: ${MONGO_DUMP_PARALLEL_COLLECTIONS}
+      BATCH_SIZE: ${MONGO_DUMP_BATCH_SIZE}
+    command: bash /dump-data.sh
+
+networks:
+  default:
+    name: grainjs_network
+    external: true

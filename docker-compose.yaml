@@ -1,0 +1,209 @@
+services:
+  mongo1_setup:
+    image: mongo:${MONGO_VERSION}
+    container_name: mongo1_setup
+    ports:
+      - "27017:27017"
+    volumes:
+      - ${MONGO_DATA_DIR}/mongo1:/data/db
+      - ${MONGO_CONFIG_DIR}/mongod_noauth.conf:/etc/mongod.conf
+      - ${MONGO_CONFIG_DIR}/keyfile:/data/configdb/keyfile  # readonly режим
+      - ${MONGO_LOGS_DIR}/mongo1:/var/log/mongodb
+      - ./scripts/healthcheck.sh:/healthcheck.sh:ro
+      # - ./scripts/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+    command: >
+      mongod
+      --config /etc/mongod.conf
+      --noauth
+
+    # environment:
+      # MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      # MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          cpus: '${MONGO_CPU_LIMIT}'
+          memory: ${MONGO_MEMORY_LIMIT}
+        reservations:
+          cpus: '${MONGO_CPU_RESERVATION}'
+          memory: ${MONGO_MEMORY_RESERVATION}
+    healthcheck:
+      test: ["CMD-SHELL", "bash /healthcheck.sh"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  mongo-make-restore:
+    image: mongo:${MONGO_VERSION}
+    container_name: mongo-make-restore
+    volumes:
+      - ./scripts/restore-data.sh:/restore-data.sh
+      - ${MONGO_DUMP_DIR}:/dump
+    environment:
+      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      PARALLEL_COLLECTIONS: ${MONGO_RESTORE_PARALLEL_COLLECTIONS}
+      BATCH_SIZE: ${MONGO_RESTORE_BATCH_SIZE}
+    depends_on:
+      mongo1_setup:
+        condition: service_healthy
+    command: bash /restore-data.sh
+
+  create-users:
+    image: mongo:${MONGO_VERSION}
+    container_name: create-users
+    volumes:
+      - ./scripts/create-users.sh:/create-users.sh:ro
+      - ./scripts/users.json:/users.json:ro
+      - ${MONGO_CONFIG_DIR}/keyfile:/data/configdb/keyfile:ro
+    environment:
+      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    depends_on:
+      mongo-make-restore:
+        condition: service_completed_successfully
+    command: bash /create-users.sh
+
+  mongo1_finish_setup:
+    image: docker:cli
+    container_name: mongo1_finish_setup
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      create-users:
+        condition: service_completed_successfully
+    command: docker stop mongo1_setup
+
+  mongo1:
+    image: mongo:${MONGO_VERSION}
+    container_name: mongo1
+    ports:
+      - "27017:27017"
+    volumes:
+      - ${MONGO_DATA_DIR}/mongo1:/data/db
+      - ${MONGO_CONFIG_DIR}/mongod.conf:/etc/mongod.conf
+      - ${MONGO_CONFIG_DIR}/keyfile:/data/configdb/keyfile  # readonly режим
+      - ${MONGO_LOGS_DIR}/mongo1:/var/log/mongodb
+      - ./scripts/healthcheck.sh:/healthcheck.sh:ro
+      # - ./scripts/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+    command: >
+      mongod
+      --config /etc/mongod.conf
+    # environment:
+      # MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      # MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          cpus: '${MONGO_CPU_LIMIT}'
+          memory: ${MONGO_MEMORY_LIMIT}
+        reservations:
+          cpus: '${MONGO_CPU_RESERVATION}'
+          memory: ${MONGO_MEMORY_RESERVATION}
+    healthcheck:
+      test: ["CMD-SHELL", "bash /healthcheck.sh"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      mongo1_finish_setup:
+        condition: service_completed_successfully
+    restart: always
+
+  mongo2:
+    image: mongo:${MONGO_VERSION}
+    container_name: mongo2
+    ports:
+      - "27018:27017"
+    volumes:
+      - ${MONGO_DATA_DIR}/mongo2:/data/db
+      - ${MONGO_CONFIG_DIR}/mongod.conf:/etc/mongod.conf
+      - ${MONGO_CONFIG_DIR}/keyfile:/data/configdb/keyfile  # readonly режим
+      - ${MONGO_LOGS_DIR}/mongo2:/var/log/mongodb
+      - ./scripts/healthcheck.sh:/healthcheck.sh:ro
+      # - ./scripts/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+    command: >
+      mongod
+      --config /etc/mongod.conf
+    # environment:
+      # MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      # MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          cpus: '${MONGO_CPU_LIMIT}'
+          memory: ${MONGO_MEMORY_LIMIT}
+        reservations:
+          cpus: '${MONGO_CPU_RESERVATION}'
+          memory: ${MONGO_MEMORY_RESERVATION}
+    healthcheck:
+      test: ["CMD-SHELL", "bash /healthcheck.sh"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      mongo1_finish_setup:
+        condition: service_completed_successfully
+
+  mongo-init-rs:
+    image: mongo:${MONGO_VERSION}
+    container_name: mongo-init-rs
+    volumes:
+      - ./scripts/init-replica.sh:/init-replica.sh:ro
+      - ${MONGO_CONFIG_DIR}/keyfile:/data/configdb/keyfile:ro
+    environment:
+      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    depends_on:
+      mongo1:
+        condition: service_healthy
+      mongo2:
+        condition: service_healthy
+    command: bash /init-replica.sh
+
+  update-rs:
+    container_name: update-rs
+    image: docker:cli
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      mongo-init-rs:
+        condition: service_completed_successfully
+    command: docker restart mongo1 mongo2
+
+  check-rs-ready:
+    image: mongo:${MONGO_VERSION}
+    container_name: check-rs-ready
+    volumes:
+      - ./scripts/check-rs-status.sh:/check-rs-status.sh:ro
+    environment:
+      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    depends_on:
+      update-rs:
+        condition: service_completed_successfully
+    command: bash /check-rs-status.sh
+
+  mongo-make-dump:
+    # profiles: ["dump"]  # Добавляем эту строку
+    image: mongo:${MONGO_VERSION}
+    container_name: mongo-make-dump
+    volumes:
+      - ./scripts/dump-data.sh:/dump-data.sh
+      - ${MONGO_DUMP_DIR}:/dump
+    environment:
+      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      PARALLEL_COLLECTIONS: ${MONGO_DUMP_PARALLEL_COLLECTIONS}
+      BATCH_SIZE: ${MONGO_DUMP_BATCH_SIZE}
+    command: bash /dump-data.sh
+    depends_on:
+      check-rs-ready:
+        condition: service_completed_successfully
+
+networks:
+  default:
+    name: grainjs_network

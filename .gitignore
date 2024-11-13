@@ -1,0 +1,7 @@
+config/keyfile
+data/
+dump
+!dump/local/*
+!dump/admin/*
+logs/
+.env
