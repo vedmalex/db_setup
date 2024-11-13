@@ -1,52 +1,43 @@
-# how to use
+# How to Use
 
-## 1. git clone repository
+## Getting Started
 
-## 2. create folders for dump
+1. **Git Clone Repository**:
+   - Clone the repository to your local machine.
 
-```mkdir dump```
+2. **Create Folders for Dump**:
+   - Create a `dump` folder in the project directory.
+   - This is where all the databases you want to backup will be stored.
 
-put here all databases you want to backup
+   Special files:
+   - `.skip_dump`: Add this file to a database folder to skip it from being dumped to the backup folder.
+   - `.skip_restore`: Add this file to a database folder to skip it from being restored from the backup folder.
+   - `.dumped`: This file is created when a database is successfully dumped to the backup folder.
+   - `.restored`: This file is created when a database is successfully restored from the backup folder.
 
-special files
- - .skip_dump - skip db from being dumped to backup folder
- - .skip_restore - skip db from being restored from backup folder
- - .dumped - db successfully dumped to backup folder
- - .restored - db successfully restored from backup folder
+3. **Configure Environment File**:
+   - Copy the `env.sample` file and rename it to `.env`.
+   - This file contains the environment variables needed for the application.
 
-## 3. configure env file
+4. **Configure `/etc/hosts` File**:
+   - Add the following lines to the end of the `/etc/hosts` file:
+     ```
+     127.0.0.1 mongo1
+     127.0.0.1 mongo2
+     ```
+   - This allows the application to connect to the MongoDB instances.
 
-```cp env.sample .env```
+5. **Adding Users to the Database**:
+   - Change the password in the `.env` file for the `MONGO_ROOT_USERNAME` and `MONGO_ROOT_PASSWORD` variables.
+   - Additional users can be added to the `scripts/users.json` file. See the example in the `scripts/users.sample.json` file.
 
-## 4. configure /etc/hosts file
+6. **Run the Deployment**:
+   - Execute the `./init.sh` script to start the deployment.
 
-add this code to the end of the file:
+7. **Connecting to the Database**:
+   - Use the following connection string to connect to the database:
+     ```
+     mongodb://<super fancy username>:<super fancy root password>@mongo1:27017/<database name>?authSource=admin&replicaSet=rs0
+     ```
 
-```bash
-127.0.0.1 mongo1
-127.0.0.1 mongo2
-```
-
-## 5. for adding user to the db
-
-change the password in the .env file
-
-```bash
-MONGO_ROOT_USERNAME=< super fancy username >
-MONGO_ROOT_PASSWORD=< super fancy root password >
-```
-additional users can be added to the `scripts/users.json` file
-see the example in the file `scripts/users.sample.json`
-
-
-5. run start deployment
-
-```./init.sh```
-
-6. for connection db
-
-```
-mongodb://<super fancy username>:<super fancy root password>@mongo1:27017/<dtabase name>?authSource=admin&replicaSet=rs0
-```
-
-pull requests is welcome
+We welcome pull requests to help improve the project!
