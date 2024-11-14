@@ -7,26 +7,14 @@ services:
     volumes:
       - ${MONGO_DATA_DIR}/mongo1:/data/db
       - ${MONGO_CONFIG_DIR}/mongod_noauth.conf:/etc/mongod.conf
-      - ${MONGO_CONFIG_DIR}/keyfile:/data/configdb/keyfile  # readonly режим
+      - ${MONGO_CONFIG_DIR}/keyfile:/data/configdb/keyfile
       - ${MONGO_LOGS_DIR}/mongo1:/var/log/mongodb
       - ./scripts/healthcheck.sh:/healthcheck.sh:ro
-      # - ./scripts/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
     command: >
       mongod
       --config /etc/mongod.conf
       --noauth
 
-    # environment:
-      # MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
-      # MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-    deploy:
-      resources:
-        limits:
-          cpus: '${MONGO_CPU_LIMIT}'
-          memory: ${MONGO_RESTORE_DB_MEMORY_LIMIT}
-        reservations:
-          cpus: '${MONGO_CPU_RESERVATION}'
-          memory: ${MONGO_MEMORY_RESERVATION}
     healthcheck:
       test: ["CMD-SHELL", "bash /healthcheck.sh"]
       interval: 10s
@@ -90,9 +78,6 @@ services:
     command: >
       mongod
       --config /etc/mongod.conf
-    # environment:
-      # MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
-      # MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     deploy:
       resources:
         limits:
@@ -123,13 +108,9 @@ services:
       - ${MONGO_CONFIG_DIR}/keyfile:/data/configdb/keyfile  # readonly режим
       - ${MONGO_LOGS_DIR}/mongo2:/var/log/mongodb
       - ./scripts/healthcheck.sh:/healthcheck.sh:ro
-      # - ./scripts/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
     command: >
       mongod
       --config /etc/mongod.conf
-    # environment:
-      # MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
-      # MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     deploy:
       resources:
         limits:
@@ -188,7 +169,6 @@ services:
     command: bash /check-rs-status.sh
 
   mongo-make-dump:
-    # profiles: ["dump"]  # Добавляем эту строку
     image: mongo:${MONGO_VERSION}
     container_name: mongo-make-dump
     volumes:

@@ -1,43 +1,71 @@
-# How to Use
+# MongoDB Database Setup Guide
 
-## Getting Started
+This repository provides tools and scripts for setting up and managing MongoDB databases with backup and restore capabilities.
 
-1. **Git Clone Repository**:
-   - Clone the repository to your local machine.
+## Prerequisites
+- Git
+- Docker and Docker Compose
+- Basic understanding of MongoDB
+- Access to edit system files (for /etc/hosts modification)
 
-2. **Create Folders for Dump**:
-   - Create a `dump` folder in the project directory.
-   - This is where all the databases you want to backup will be stored.
+## Installation
 
-   Special files:
-   - `.skip_dump`: Add this file to a database folder to skip it from being dumped to the backup folder.
-   - `.skip_restore`: Add this file to a database folder to skip it from being restored from the backup folder.
-   - `.dumped`: This file is created when a database is successfully dumped to the backup folder.
-   - `.restored`: This file is created when a database is successfully restored from the backup folder.
+1. **Clone the Repository**:
+   ```bash
+   git clone git@github.com:vedmalex/db_setup.git
+   cd db_setup
+   ```
 
-3. **Configure Environment File**:
-   - Copy the `env.sample` file and rename it to `.env`.
-   - This file contains the environment variables needed for the application.
+2. **Create Backup Directory**:
+   ```bash
+   mkdir dump
+   ```
+   The `dump` directory is used to store database backups. Each database can have special control files:
+   - `.skip_dump` - Skip this database during backup operations
+   - `.skip_restore` - Skip this database during restore operations
+   - `.dumped` - Indicates successful backup completion
+   - `.restored` - Indicates successful restore completion
 
-4. **Configure `/etc/hosts` File**:
-   - Add the following lines to the end of the `/etc/hosts` file:
-     ```
-     127.0.0.1 mongo1
-     127.0.0.1 mongo2
-     ```
-   - This allows the application to connect to the MongoDB instances.
+3. **Configure Environment Variables**:
+   ```bash
+   cp env.sample .env
+   ```
+   Edit `.env` file to set your credentials:
+   ```bash
+   MONGO_ROOT_USERNAME=<your_username>
+   MONGO_ROOT_PASSWORD=<your_secure_password>
+   ```
 
-5. **Adding Users to the Database**:
-   - Change the password in the `.env` file for the `MONGO_ROOT_USERNAME` and `MONGO_ROOT_PASSWORD` variables.
-   - Additional users can be added to the `scripts/users.json` file. See the example in the `scripts/users.sample.json` file.
+4. **Update Hosts File**:
+   Add these entries to your `/etc/hosts` file:
+   ```bash
+   127.0.0.1 mongo1
+   127.0.0.1 mongo2
+   ```
 
-6. **Run the Deployment**:
-   - Execute the `./init.sh` script to start the deployment.
+5. **User Management**:
+   - Root user credentials are set in the `.env` file
+   - Additional users can be added in `scripts/users.json`
+   - Use `scripts/users.sample.json` as a template for user configuration
 
-7. **Connecting to the Database**:
-   - Use the following connection string to connect to the database:
-     ```
-     mongodb://<super fancy username>:<super fancy root password>@mongo1:27017/<database name>?authSource=admin&replicaSet=rs0
-     ```
+6. **Start the Deployment**:
+   ```bash
+   ./init.sh
+   ```
 
-We welcome pull requests to help improve the project!
+7. **Connect to MongoDB**:
+   Use this connection string format:
+   ```
+   mongodb://<username>:<password>@mongo1:27017/<database>?authSource=admin&replicaSet=rs0
+   ```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+Let me know if you'd like me to add any additional sections or details to the README, such as:
+- Detailed backup/restore procedures
+- Troubleshooting guide
+- System requirements
+- Configuration options
+- Usage examples

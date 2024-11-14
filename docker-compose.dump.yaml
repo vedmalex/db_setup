@@ -1,6 +1,5 @@
 services:
   mongo-make-dump:
-    # profiles: ["dump"]  # Добавляем эту строку
     image: mongo:${MONGO_VERSION}
     container_name: mongo-make-dump
     volumes:
