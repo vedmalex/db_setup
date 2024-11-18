@@ -1,20 +1,20 @@
 #!/bin/bash
 # set -e
 
-docker-compose -f docker-compose.dump.yaml up
+docker compose -f docker-compose.dump.yaml up
 
 status=$?
 
 # Check if the command failed
 if [ $status -ne 0 ]; then
-    echo "docker-compose command failed with status $status. Continuing..."
+    echo "docker compose command failed with status $status. Continuing..."
 else
-    echo "docker-compose command succeeded."
+    echo "docker compose command succeeded."
 fi
 
 echo "stop and remove containers"
 
-docker-compose down
+docker compose down
 
 echo "clean data"
 rm -rf data/{mongo1,mongo2}
@@ -26,6 +26,6 @@ mkdir -p logs/{mongo1,mongo2}
 
 scripts/generate-key.sh
 
-docker-compose up -d
+docker compose up -d
 
 # docker inspect --format="{{json .State.Health}}"
