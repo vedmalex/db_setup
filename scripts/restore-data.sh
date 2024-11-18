@@ -31,7 +31,7 @@ if [ -d "/dump" ]; then
             fi
 
             # Проверяем, существует ли база данных
-            db_exists=$($CLIENT --host mongo1_setup:27017 --authenticationDatabase admin --quiet --eval "db.getMongo().getDBNames().indexOf('$db_name') !== -1")
+            db_exists=$($CLIENT --host mongo1:27017 -u $MONGO_ROOT_USERNAME -p $MONGO_ROOT_PASSWORD --authenticationDatabase admin --quiet --eval "db.getMongo().getDBNames().indexOf('$db_name') !== -1")
 
             if [ "$db_exists" = "true" ] && [ -f "/dump/$db_name/.no_override" ]; then
                 echo "Database $db_name exists and .no_override file found, skipping..."
@@ -41,7 +41,9 @@ if [ -d "/dump" ]; then
             echo "Restoring $db_name from dump..."
 
             # Настройки для mongorestore
-            RESTORE_OPTS="--host mongo1_setup:27017 \
+            RESTORE_OPTS="--host mongo1:27017 \
+                -u $MONGO_ROOT_USERNAME -p $MONGO_ROOT_PASSWORD\
+                --authenticationDatabase admin \
                 --db \"$db_name\" \
                 --dir \"/dump/$db_name\" \
                 --drop"
