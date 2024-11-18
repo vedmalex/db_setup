@@ -98,18 +98,20 @@ check_replica_status() {
     execute_mongo_command "rs.status().ok;" "Failed to check replica status" | grep -q "1"
 }
 
-# Функция изменения размера оплога
-resize_oplog() {
-    echo "Resizing oplog to ${OPLOG_SIZE}MB..."
+# # Функция изменения размера оплога
+# resize_oplog() {
+#     echo "Resizing oplog to ${OPLOG_SIZE}MB..."
 
-    local command="
-    use admin;
-    db.runCommand({ replSetResizeOplog: 1, size: ${OPLOG_SIZE} });
-    "
+#     local command="
+#     use admin;
+#     db.runCommand({ replSetResizeOplog: 1, size: ${OPLOG_SIZE} });
+#     "
 
-    execute_mongo_command "$command" "Failed to resize oplog" || return 1
-    echo "Oplog resize completed"
-}
+#     echo command: $command
+
+#     execute_mongo_command "$command" "Failed to resize oplog" || return 1
+#     echo "Oplog resize completed"
+# }
 
 # Основная логика скрипта
 echo "Starting MongoDB replica set initialization..."
@@ -157,10 +159,11 @@ while [ $attempt -le $MAX_RETRIES ]; do
     attempt=$((attempt + 1))
 done
 
-# Изменение размера оплога
-if ! resize_oplog; then
-    echo "Warning: Failed to resize oplog, but continuing..."
-fi
+# # Изменение размера оплога
+# if ! resize_oplog; then
+#     echo "Warning: Failed to resize oplog, but continuing..."
+#     exit 0
+# fi
 
 echo "MongoDB replica set initialization completed successfully"
 exit 0

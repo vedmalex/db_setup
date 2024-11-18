@@ -1,6 +1,8 @@
 config/keyfile
 data/
-dump
+dump/
+tmp/
+ssl/
 scripts/users.json
 !dump/local/*
 !dump/admin/*

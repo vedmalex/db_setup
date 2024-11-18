@@ -1,0 +1,18 @@
+services:
+  mongo-make-dump-to-rs:
+    image: mongo:${MONGO_VERSION}
+    container_name: mongo-make-dump-to-rs
+    volumes:
+      - ./scripts/restore-data-rs.sh:/restore-data.sh
+      - ${MONGO_DUMP_DIR}:/dump
+    environment:
+      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      PARALLEL_COLLECTIONS: ${MONGO_RESTORE_PARALLEL_COLLECTIONS}
+      BATCH_SIZE: ${MONGO_RESTORE_BATCH_SIZE}
+    command: bash /restore-data.sh
+
+networks:
+  default:
+    name: grainjs_network
+    external: true

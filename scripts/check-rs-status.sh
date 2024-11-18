@@ -36,18 +36,18 @@ check_connection() {
            -p "$MONGO_ROOT_PASSWORD" \
            --authenticationDatabase admin \
            --eval "rs.status().ok" \
-           2>&1 | tee /tmp/mongo_status.log
+           2>&1 | tee /tmp/mongo_check_rs_status.log
 
     return ${PIPESTATUS[0]}
 }
 
 # Функция для анализа ошибок
 analyze_error() {
-    if grep -q "Connection refused" /tmp/mongo_status.log; then
+    if grep -q "Connection refused" /tmp/mongo_check_rs_status.log; then
         echo "Error: Connection refused. MongoDB server might not be running."
-    elif grep -q "Authentication failed" /tmp/mongo_status.log; then
+    elif grep -q "Authentication failed" /tmp/mongo_check_rs_status.log; then
         echo "Error: Authentication failed. Please check credentials."
-    elif grep -q "NetworkTimeout" /tmp/mongo_status.log; then
+    elif grep -q "NetworkTimeout" /tmp/mongo_check_rs_status.log; then
         echo "Error: Network timeout occurred."
     else
         echo "Error: Unknown connection issue. Check the logs for details."
@@ -60,7 +60,7 @@ while [ $attempt -le $MAX_RETRIES ]; do
     echo "Connection attempt $attempt of $MAX_RETRIES..."
 
     if check_connection; then
-        if grep -q "1" /tmp/mongo_status.log && ! grep -q "failed" /tmp/mongo_status.log; then
+        if grep -q "1" /tmp/mongo_check_rs_status.log && ! grep -q "failed" /tmp/mongo_check_rs_status.log; then
             echo "Success: MongoDB replica set is ready!"
             exit 0
         fi

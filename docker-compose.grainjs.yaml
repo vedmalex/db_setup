@@ -1,13 +1,27 @@
-version: '3.8'
-
 services:
-  node:
+  application:
+    container_name: application
     image: node:23
     ports:
       - 3102:3102
     volumes:
-    - ../:/app
-    working_dir: /app/apps/sharan/applications/Sharan/
-    command: npx granjs edit
+      - ./:/app
+    working_dir: /app/applications/Sharan/
+    command: npm run start
     environment:
       - NODE_OPTIONS=--max_old_space_size=12288
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "3112:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - application
+
+networks:
+  default:
+    name: grainjs_network
+    external: true
