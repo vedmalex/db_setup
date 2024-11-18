@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  node:
+    image: node:23
+    ports:
+      - 3102:3102
+    volumes:
+    - ../:/app
+    working_dir: /app/apps/sharan/applications/Sharan/
+    command: npx granjs edit
+    environment:
+      - NODE_OPTIONS=--max_old_space_size=12288

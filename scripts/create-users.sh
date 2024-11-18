@@ -25,7 +25,7 @@ echo "Creating users..."
 # Проверяем существование файла users.json
 if [ ! -f "users.json" ]; then
     echo "Warning: users.json file not found. Only root user will be created."
-    
+
     # Создаем только root пользователя без дополнительных пользователей
     $CLIENT mongo1_setup:27017/admin <<EOF
     db.getSiblingDB("admin").createUser({
@@ -56,9 +56,9 @@ else
 
         // Парсим конфигурацию пользователей
         const usersConfig = JSON.parse(\`$USERS_CONFIG\`);
-        
+
         // Создаем админа если он указан
-        if (usersConfig.admin) {
+        if (usersConfig.admin && usersConfig.admin.username!== "$MONGO_ROOT_USERNAME") {
             db.getSiblingDB("admin").createUser({
                 user: usersConfig.admin.username,
                 pwd: usersConfig.admin.password,

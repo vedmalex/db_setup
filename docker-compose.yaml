@@ -159,6 +159,7 @@ services:
     image: mongo:${MONGO_VERSION}
     container_name: check-rs-ready
     volumes:
+      - ./tmp:/tmp
       - ./scripts/check-rs-status.sh:/check-rs-status.sh:ro
     environment:
       MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
@@ -183,6 +184,20 @@ services:
     depends_on:
       check-rs-ready:
         condition: service_completed_successfully
+
+  # project:
+  #   image: node:23
+  #   ports:
+  #     - 3102:3102
+  #   volumes:
+  #   - ../:/app
+  #   working_dir: /app/apps/sharan/applications/Sharan/
+  #   command: npx granjs edit
+  #   environment:
+  #     - NODE_OPTIONS=--max_old_space_size=12288
+  #   depends_on:
+  #     check-rs-ready:
+  #       condition: service_completed_successfully
 
 networks:
   default:

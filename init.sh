@@ -26,6 +26,9 @@ mkdir -p logs/{mongo1,mongo2}
 
 scripts/generate-key.sh
 
+chmod 777 logs/mongo1 logs/mongo2
+chmod 777 data/mongo1 data/mongo2
+
 docker compose up -d
 
 # docker inspect --format="{{json .State.Health}}"
