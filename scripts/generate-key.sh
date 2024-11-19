@@ -1,27 +1,38 @@
 #!/bin/bash
 
-# Генерируем случайный ключ длиной 756 байт в base64 и удаляем переносы строк
+# Set the config directory
+CONFIG_DIR="./config"
+
+# Create config directory if it doesn't exist
+mkdir -p "$CONFIG_DIR"
+
+# Generate random key
 MONGO_REPLICA_SET_KEY=$(openssl rand -base64 756 | tr -d '\n')
 
-# Обновляем .env файл
+# Update .env file
 if grep -q "MONGO_REPLICA_SET_KEY=" .env; then
-    # Экранируем специальные символы в ключе для sed
     ESCAPED_KEY=$(echo "$MONGO_REPLICA_SET_KEY" | sed 's/[\/&]/\\&/g')
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS версия
         sed -i '' "s/MONGO_REPLICA_SET_KEY=.*/MONGO_REPLICA_SET_KEY=$ESCAPED_KEY/" .env
     else
-        # Linux версия
         sed -i "s/MONGO_REPLICA_SET_KEY=.*/MONGO_REPLICA_SET_KEY=$ESCAPED_KEY/" .env
     fi
 else
-    # Добавляем новый ключ
     echo "MONGO_REPLICA_SET_KEY=$MONGO_REPLICA_SET_KEY" >> .env
 fi
 
-# Создаем keyfile
-echo "$MONGO_REPLICA_SET_KEY" > config/keyfile
-# chmod 400 config/keyfile
-# sudo chown 999:999 config/keyfile  # 999 это UID пользователя mongodb в контейнере
+# Create keyfile with correct permissions
+echo "$MONGO_REPLICA_SET_KEY" > "$CONFIG_DIR/keyfile"
 
-echo "Replica set key generated and saved"
+# Set proper permissions (required by MongoDB)
+chmod 400 "$CONFIG_DIR/keyfile"
+
+# Set ownership to mongodb user (UID 999 in official mongo image)
+if command -v docker &> /dev/null; then
+    # If running in a system with Docker
+    chown 999:999 "$CONFIG_DIR/keyfile"
+else
+    echo "Warning: Docker not found. Please ensure keyfile ownership is set to mongodb user in your environment."
+fi
+
+echo "Replica set key generated and saved with correct permissions"
