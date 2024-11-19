@@ -22,22 +22,6 @@ services:
       retries: 3
       start_period: 20s
 
-  mongo-make-restore:
-    image: mongo:${MONGO_VERSION}
-    container_name: mongo-make-restore
-    volumes:
-      - ./scripts/restore-data.sh:/restore-data.sh
-      - ${MONGO_DUMP_DIR}:/dump
-    environment:
-      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
-      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-      PARALLEL_COLLECTIONS: ${MONGO_RESTORE_PARALLEL_COLLECTIONS}
-      BATCH_SIZE: ${MONGO_RESTORE_BATCH_SIZE}
-    depends_on:
-      mongo1_setup:
-        condition: service_healthy
-    command: bash /restore-data.sh
-
   create-users:
     image: mongo:${MONGO_VERSION}
     container_name: create-users
@@ -49,8 +33,8 @@ services:
       MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     depends_on:
-      mongo-make-restore:
-        condition: service_completed_successfully
+    mongo1_setup:
+        condition: service_healthy
     command: bash /create-users.sh
 
   mongo1_finish_setup:
@@ -168,36 +152,6 @@ services:
       update-rs:
         condition: service_completed_successfully
     command: bash /check-rs-status.sh
-
-  mongo-make-dump:
-    image: mongo:${MONGO_VERSION}
-    container_name: mongo-make-dump
-    volumes:
-      - ./scripts/dump-data.sh:/dump-data.sh
-      - ${MONGO_DUMP_DIR}:/dump
-    environment:
-      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
-      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-      PARALLEL_COLLECTIONS: ${MONGO_DUMP_PARALLEL_COLLECTIONS}
-      BATCH_SIZE: ${MONGO_DUMP_BATCH_SIZE}
-    command: bash /dump-data.sh
-    depends_on:
-      check-rs-ready:
-        condition: service_completed_successfully
-
-  # project:
-  #   image: node:23
-  #   ports:
-  #     - 3102:3102
-  #   volumes:
-  #   - ../:/app
-  #   working_dir: /app/apps/sharan/applications/Sharan/
-  #   command: npx granjs edit
-  #   environment:
-  #     - NODE_OPTIONS=--max_old_space_size=12288
-  #   depends_on:
-  #     check-rs-ready:
-  #       condition: service_completed_successfully
 
 networks:
   default:
