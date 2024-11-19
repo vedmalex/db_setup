@@ -33,7 +33,7 @@ services:
       MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     depends_on:
-    mongo1_setup:
+      mongo1_setup:
         condition: service_healthy
     command: bash /create-users.sh
 
