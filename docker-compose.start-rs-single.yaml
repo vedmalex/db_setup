@@ -1,0 +1,40 @@
+services:
+  mongo1:
+    image: mongo:${MONGO_VERSION}
+    container_name: mongo1
+    ports:
+      - "27017:27017"
+    volumes:
+      - ${MONGO_DATA_DIR}/mongo1:/data/db
+      - ${MONGO_CONFIG_DIR}/mongod.conf:/etc/mongod.conf
+      - ${MONGO_CONFIG_DIR}/keyfile:/data/configdb/keyfile  # readonly режим
+      - ${MONGO_LOGS_DIR}/mongo1:/var/log/mongodb
+      - ./scripts/healthcheck.sh:/healthcheck.sh:ro
+      # - ./scripts/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+    command: >
+      mongod
+      --config /etc/mongod.conf
+    healthcheck:
+      test: ["CMD-SHELL", "bash /healthcheck.sh"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  check-rs-ready:
+    image: mongo:${MONGO_VERSION}
+    container_name: check-rs-ready
+    volumes:
+      - ./tmp:/tmp
+      - ./scripts/check-rs-status.sh:/check-rs-status.sh:ro
+    environment:
+      MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    depends_on:
+      mongo1:
+        condition: service_healthy
+    command: bash /check-rs-status.sh
+
+networks:
+  default:
+    name: grainjs_network

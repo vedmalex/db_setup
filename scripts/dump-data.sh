@@ -33,7 +33,10 @@ mkdir -p /dump
 
 
 # Получаем список всех баз данных с проверкой на ошибки
-databases=$($CLIENT --host mongo1:27017 -u "$MONGO_ROOT_USERNAME" -p "$MONGO_ROOT_PASSWORD" --quiet --authenticationDatabase admin --eval "db.getMongo().getDBNames()" | tr ',' '\n' | tr -d '[]" ') || {
+# Измените блок получения списка баз данных на следующий:
+databases=$($CLIENT --host mongo1:27017 -u "$MONGO_ROOT_USERNAME" -p "$MONGO_ROOT_PASSWORD" \
+    --quiet --authenticationDatabase \
+    admin --eval "db.getMongo().getDBNames()" | tr ',' '\n' | tr -d "[]' \"" | grep -v '^admin$' | grep -v '^local$' | grep -v '^config$') || {
     echo "Failed to get database list"
     exit 1
 }

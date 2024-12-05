@@ -12,6 +12,7 @@ services:
       - NODE_OPTIONS=--max_old_space_size=12288
 
   nginx:
+    container_name: nginx
     image: nginx:alpine
     ports:
       - "3112:443"

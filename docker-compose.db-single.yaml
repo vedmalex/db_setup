@@ -81,51 +81,17 @@ services:
         condition: service_completed_successfully
     restart: always
 
-  mongo2:
-    image: mongo:${MONGO_VERSION}
-    container_name: mongo2
-    ports:
-      - "27018:27017"
-    volumes:
-      - ${MONGO_DATA_DIR}/mongo2:/data/db
-      - ${MONGO_CONFIG_DIR}/mongod.conf:/etc/mongod.conf
-      - ${MONGO_CONFIG_DIR}/keyfile:/data/configdb/keyfile  # readonly режим
-      - ${MONGO_LOGS_DIR}/mongo2:/var/log/mongodb
-      - ./scripts/healthcheck.sh:/healthcheck.sh:ro
-    command: >
-      mongod
-      --config /etc/mongod.conf
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '${MONGO_CPU_LIMIT}'
-    #       memory: ${MONGO_MEMORY_LIMIT}
-    #     reservations:
-    #       cpus: '${MONGO_CPU_RESERVATION}'
-    #       memory: ${MONGO_MEMORY_RESERVATION}
-    healthcheck:
-      test: ["CMD-SHELL", "bash /healthcheck.sh"]
-      interval: 10s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
-    depends_on:
-      mongo1_finish_setup:
-        condition: service_completed_successfully
-
   mongo-init-rs:
     image: mongo:${MONGO_VERSION}
     container_name: mongo-init-rs
     volumes:
-      - ./scripts/init-replica.sh:/init-replica.sh:ro
+      - ./scripts/init-replica-single.sh:/init-replica.sh:ro
       - ${MONGO_CONFIG_DIR}/keyfile:/data/configdb/keyfile:ro
     environment:
       MONGO_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     depends_on:
       mongo1:
-        condition: service_healthy
-      mongo2:
         condition: service_healthy
     command: bash /init-replica.sh
 
@@ -137,7 +103,7 @@ services:
     depends_on:
       mongo-init-rs:
         condition: service_completed_successfully
-    command: docker restart mongo1 mongo2
+    command: docker restart mongo1
 
   check-rs-ready:
     image: mongo:${MONGO_VERSION}
