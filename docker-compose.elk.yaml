@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   elasticsearch:
-    image: elasticsearch:7.17.0
+    image: elasticsearch:7.17.26
     container_name: elasticsearch
     environment:
       - discovery.type=single-node
@@ -12,7 +12,7 @@ services:
       - "9200:9200" # Expose Elasticsearch port
 
   logstash:
-    image: logstash:7.17.0
+    image: logstash:7.17.26
     container_name: logstash
     volumes:
       - ./logstash:/usr/share/logstash/pipeline
@@ -23,7 +23,7 @@ services:
       - "5044:5044"     # Expose Logstash port for Beats
 
   kibana:
-    image: kibana:7.17.0
+    image: kibana:7.17.26
     container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
