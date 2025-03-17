@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   elasticsearch:
-    image: elasticsearch:7.17.26
+    image: elasticsearch:7.17.28
     container_name: elasticsearch
     environment:
       - discovery.type=single-node
@@ -12,18 +12,22 @@ services:
       - "9200:9200" # Expose Elasticsearch port
 
   logstash:
-    image: logstash:7.17.26
+    image: logstash:7.17.28
     container_name: logstash
+    environment:
+      - LOG_LEVEL=debug
     volumes:
-      - ./logstash:/usr/share/logstash/pipeline
+      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml  # Mount logstash.yml
     networks:
       - elk
     ports:
-      - "5000:5000/tcp" # Expose Logstash port for TCP
-      - "5044:5044"     # Expose Logstash port for Beats
+      - "5000:5000/tcp"  # Явное указание TCP
+      - "5044:5044"
+      - "9600:9600"      # Expose Health Check API port (optional for external access)
 
   kibana:
-    image: kibana:7.17.26
+    image: kibana:7.17.28
     container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
